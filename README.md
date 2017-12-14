@@ -1,6 +1,8 @@
 # Line-php
 Need More
 
+==JUST FORK==
+
 Klo pake Linux atau sejenis nya install php dulu yak.
 
 
@@ -23,6 +25,16 @@ For Running in command prompt:
 
 
 -> php tanys.php
+
+
+COMMANDS:
+
+
+--> Speed
+
+--> Ratakan
+
+--> Member
 
 
 
