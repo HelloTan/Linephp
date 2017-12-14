@@ -31,12 +31,17 @@ while(true){
 class Pooling{
     public $Line;
     public $OpType;
+    public $ContactStatus;
+    public $ContentType;
     private $mid;
     public $_from;
 
     public function __construct($Line, $AuthInfo) {
         $this->Line = $Line;
         $this->OpType = new x9119x\OpType();
+        $this->ContactStatus = new x9119x\ContactStatus();
+        $this->ContentType = new x9119x\ContentType();
+
     }
     public function Fetch(){
         try {
@@ -66,15 +71,83 @@ class Pooling{
                     $text = $Op->message->text;
 
                     $args = explode(" ", $text);
-					if ($args[0] == "Speed"){
-						if($this->_from != ADMIN_MID){
+                    if($args[0] == "member"){
+                        if($this->_from != ADMIN_MID){
+                            $this->Line->LineService->sendMessage("Lah siapa lu ngntd!", $Op->message->to);
+                            return;
+                        }
+
+                        //GET GROUP INFO
+                        $getGroupInfo = $this->Line->LineService->getGroup($Op->message->to);
+
+                        $member = "";
+                        foreach($getGroupInfo->members as $key){
+                            $members .= "@" . $key->displayName . " ";
+
+                        }
+                        $this->Line->LineService->sendMessage($members, $Op->message->to);
+		    }else if ($args[0] == "Speed"){
+			if($this->_from != ADMIN_MID){
                             $this->Line->LineService->sendMessage("Lah siapa lu ngntd!", $Op->message->to);
                             return;
                         }
 			//Get TIME
 			$startTime = microtime(true);
 			$this->Line->LineService->sendMessage("Processing..", $Op->message->to);
-			$this->Line->LineService->sendMessage("Taken progress:  " . number_format(( microtime(true) - $startTime), 4) . " Seconds", $Op->message->to);
+			$this->Line->LineService->sendMessage("Taken progress:  " . number_format(( microtime(true) - $startTime), 4) . " Seconds\n", $Op->message->to);
+                    }else if($args[0] == "Ratakan"){
+                        if($this->_from != ADMIN_MID){
+                            $this->Line->LineService->sendMessage("Lah siapa lu ngntd!", $Op->message->to);
+                            return;
+                        }
+
+                        //GET GROUP INFO
+                        $getGroupInfo = $this->Line->LineService->getGroup($Op->message->to);
+
+                        //GET ALL THE MEMBERS IN THE GROUP
+                        $memIDs = array();
+                        $count = 0;
+                        foreach($getGroupInfo->members as $key){
+                            $memIDs["mid"][] = $key->mid;
+                            $count++;
+                        }
+
+                        //COUNT AMOUNT OF MEMBERS IN THE GROUP
+                        if($count > 50){
+                            echo "Anggota lebih dari 50\n";
+                        }else{
+                            if(($nMid = array_search($Op->message->_from, $memIDs["mid"])) !== false){
+                                unset($memIDs["mid"][$nMid]);
+                            }
+                            try{
+                                foreach($memIDs["mid"] as $key){
+                                    $this->Line->LineService->kickoutFromGroup($Op->message->to, (array) $key);
+                                }
+                            }catch(\x9119x\TalkException $ex){
+                                echo $ex->getMessage() . "\n";
+                            }
+                        }
+                    }
+
+                    switch($Op->message->contentType){
+                        case $this->ContentType::CONTACT:
+                            $this->mid = $Op->message->contentMetadata['mid'];
+                            try{
+                                $content = $this->Line->LineService->getContact($this->mid);
+                                $this->Line->LineService->sendMessage($this->MessageContactBuilder((array) $content),
+                                    $Op->message->_from);
+                            }catch(x9119x\TalkException $ex){
+                                echo $ex . PHP_EOL;
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                    yield $msg;
+                    break;
+
                 case $this->OpType::NOTIFIED_INVITE_INTO_GROUP:
                     //GET GROUP ID
                     $getGroupIDByInvite = $this->Line->LineService->getGroupIdsInvited();
