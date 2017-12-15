@@ -12,7 +12,13 @@ You must install :
 ==> PHP > 7.x
 
 
--> php-curl sudo apt-get install php-curl
+-> sudo add-apt-repository ppa:ondrej/php
+
+
+-> sudo apt-get update
+
+
+-> php --version
 
 
 In windows, you must download xampp.
