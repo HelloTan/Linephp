@@ -57,8 +57,8 @@ class EndPoint {
     public $PollService = '/P4';
 }
 class Host {
-    public $Windows_1  = 't.line.naver.jp';
-    public $Android_1  = 't.line.naver.jp';
+    public $Windows_1  = 'legy-jp.line.naver.jp';
+    public $Android_1  = 'legy-jp.line.naver.jp';
     public $ProfileURL = 'http://dl.profile.line-cdn.net/';
     public $Host;
     public function __construct() {
